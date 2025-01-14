@@ -26,7 +26,6 @@ namespace PaymentSystems
             IPaymentSystem system2 = new PaymentSystem2(md5Calculator);
             IPaymentSystem system3 = new PaymentSystem3(sha1Calculator, "SecretKey");
 
-
             Console.WriteLine(system1.GetPayingLink(order));
             Console.WriteLine(system2.GetPayingLink(order));
             Console.WriteLine(system3.GetPayingLink(order));
@@ -61,8 +60,8 @@ namespace PaymentSystems
 
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         }
-
     }
+
     internal class Order
     {
         private int _id;
@@ -70,8 +69,11 @@ namespace PaymentSystems
 
         public Order(int id, int amount)
         {
-            if (id <= 0 || amount <= 0)
+            if (id <= 0) 
                 throw new ArgumentOutOfRangeException();
+
+            if (amount <= 0)
+                    throw new ArgumentOutOfRangeException();
 
             _id = id;
             _amount = amount;
@@ -122,7 +124,7 @@ namespace PaymentSystems
                 throw new ArgumentNullException();
 
             string data = order.Id + order.Amount.ToString();
-            string hash = _hashCalculator.CalculateHash(data.ToString());
+            string hash = _hashCalculator.CalculateHash(data);
 
             return $"order.system2.ru/pay?hash={hash}";
         }
@@ -135,7 +137,10 @@ namespace PaymentSystems
 
         internal PaymentSystem3(IHashCalculator hashCalculator, string secretKey)
         {
-            if (secretKey == null || hashCalculator == null)
+            if (secretKey == null) 
+                throw new ArgumentNullException();
+
+            if (hashCalculator == null)
                 throw new ArgumentNullException();
 
             _secretKey = secretKey;
@@ -148,7 +153,7 @@ namespace PaymentSystems
                 throw new ArgumentNullException();
 
             string data = $"{order.Amount}{order.Id}{_secretKey}";
-            string hash = _hashCalculator.CalculateHash(data.ToString());
+            string hash = _hashCalculator.CalculateHash(data);
 
             return $"system3.com/pay?amount={order.Amount}&curency=RUB&hash={hash}";
         }
